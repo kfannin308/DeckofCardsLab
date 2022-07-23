@@ -26,8 +26,37 @@ namespace DeckofCardsLab.Controllers
             const string createDeckOfCardsApiUrl = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
             
             var apiResponse = httpClient.GetFromJsonAsync<DeckOfCards_Create>(createDeckOfCardsApiUrl).GetAwaiter().GetResult();
-            return View(apiResponse);
+            string deckId = apiResponse.deck_id;
+            int noCardsToDraw = 5;
+            string drawDeckOfCardsApiFormat = $"https://deckofcardsapi.com/api/deck/{deckId}/draw/?count={noCardsToDraw}";
+            // This is what the response looks like:
+            // {
+            //    "success": true,
+            //    "cards": [
+            //        {
+            //            "image": "https://deckofcardsapi.com/static/img/KH.png",
+            //            "value": "KING",
+            //            "suit": "HEARTS",
+            //            "code": "KH"
+            //        },
+            //        {
+            //            "image": "https://deckofcardsapi.com/static/img/8C.png",
+            //            "value": "8",
+            //            "suit": "CLUBS",
+            //            "code": "8C"
+            //        }
+            //    ],
+            //    "deck_id":"3p40paa87x90",
+            //    "remaining": 50
+            //}
+            var drawCardsResponse = httpClient.GetFromJsonAsync<DeckOfCards_Draw>(drawDeckOfCardsApiFormat).GetAwaiter().GetResult();
+            var displayCardsModel = new DisplayResultsModel();
+            displayCardsModel.createResult = apiResponse;
+            displayCardsModel.drawResult = drawCardsResponse;
+            return View(displayCardsModel);
         }
+        
+
         public IActionResult Privacy()
         {
             return View();
@@ -47,4 +76,26 @@ namespace DeckofCardsLab.Controllers
         public int remaining { get; set; }
 
     }
+    public class DeckOfCards_Draw
+    {
+        public bool success { get; set; }
+        public string deck_id { get; set; }
+        public int remaining { get; set; }
+        public DeckOfCards_Draw_Cards[] cards { get; set; }
+
+    }
+    public class DeckOfCards_Draw_Cards
+    {
+        public string image { get; set; }
+        public string value { get; set; }
+        public string suit { get; set; }
+        public string code { get; set; }
+
+    }
+    public class DisplayResultsModel
+    {
+        public DeckOfCards_Create createResult { get; set; }
+        public DeckOfCards_Draw drawResult { get; set; }
+    }
+    
 }
